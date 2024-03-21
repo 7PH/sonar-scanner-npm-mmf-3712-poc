@@ -2,12 +2,14 @@ import AdmZip from 'adm-zip';
 import axios, { AxiosRequestConfig } from 'axios';
 import crypto from 'crypto';
 import fs from 'fs';
+import path from 'path';
 import * as stream from 'stream';
 import { join, dirname } from 'path';
 import zlib from 'zlib';
 import tarStream from 'tar-stream';
 import * as fsExtra from 'fs-extra';
 import { promisify } from 'util';
+import { SONAR_CACHE_DIR } from './constants';
 import { LogLevel, log } from './logging';
 
 const finished = promisify(stream.finished);
@@ -112,4 +114,12 @@ export function allowExecution(filePath: string) {
 export async function cleanupDownloadCache() {
   log(LogLevel.INFO, 'Cleaning up cache');
   // TODO: Implement
+}
+
+export function getCachedFileLocation(md5: string, filename: string): string | null {
+  const filePath = path.join(SONAR_CACHE_DIR, md5, filename);
+  if (fs.existsSync(path.join(SONAR_CACHE_DIR, md5, filename))) {
+    return filePath;
+  }
+  return null;
 }

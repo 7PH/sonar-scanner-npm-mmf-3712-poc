@@ -9,3 +9,5 @@ export const SONAR_CACHE_DIR = path.join(
   '.sonar',
   'cache',
 );
+
+export const UNARCHIVE_SUFFIX = '_extracted';

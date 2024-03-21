@@ -24,8 +24,9 @@ import {
   SONARCLOUD_URL,
   SONARQUBE_JRE_PROVISIONING_MIN_VERSION,
   SONAR_CACHE_DIR,
+  UNARCHIVE_SUFFIX,
 } from './constants';
-import { allowExecution, downloadFile, extractArchive } from './download';
+import { allowExecution, downloadFile, extractArchive, getCachedFileLocation } from './download';
 import { LogLevel, log } from './logging';
 import { JreMetaData, PlatformInfo } from './types';
 
@@ -45,7 +46,6 @@ async function downloadJre(
   serverUrl: string,
   platformInfo: PlatformInfo,
 ): Promise<
-  // TODO: Create a type for that?
   JreMetaData & {
     jrePath: string;
   }
@@ -54,10 +54,18 @@ async function downloadJre(
     `${serverUrl}/api/v2/scanner/jre/info?os=${platformInfo.os}&arch=${platformInfo.arch}`,
   );
 
-  // TODO: Cache
+  // If the JRE was already downloaded, we can skip the download
+  const cachedJRE = getCachedFileLocation(data.checksum, data.filename + UNARCHIVE_SUFFIX);
+  if (cachedJRE) {
+    log(LogLevel.DEBUG, `JRE already downloaded to ${cachedJRE}. Skipping download`);
+    return {
+      ...data,
+      jrePath: path.join(cachedJRE, data.javaPath),
+    };
+  }
 
   const archivePath = path.join(SONAR_CACHE_DIR, data.checksum, data.filename);
-  const jreDirPath = path.join(SONAR_CACHE_DIR, data.checksum, data.filename + '_unzip');
+  const jreDirPath = path.join(SONAR_CACHE_DIR, data.checksum, data.filename + UNARCHIVE_SUFFIX);
 
   await downloadFile(
     `${serverUrl}/api/v2/scanner/jre/download?filename=${data.filename}`,
