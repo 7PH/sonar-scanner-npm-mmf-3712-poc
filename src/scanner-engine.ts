@@ -50,7 +50,7 @@ export async function fetchScannerEngine(serverUrl: string): Promise<string> {
   // TODO: Cache
 
   const scannerEnginePath = path.join(SONAR_CACHE_DIR, md5, filename);
-  await downloadFile(`${serverUrl}/batch/file?name=${filename}`, scannerEnginePath);
+  await downloadFile(`${serverUrl}/batch/file?name=${filename}`, scannerEnginePath, md5);
   return scannerEnginePath;
 }
 

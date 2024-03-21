@@ -54,12 +54,15 @@ async function downloadJre(
     `${serverUrl}/api/v2/scanner/jre/info?os=${platformInfo.os}&arch=${platformInfo.arch}`,
   );
 
+  // TODO: Cache
+
   const archivePath = path.join(SONAR_CACHE_DIR, data.checksum, data.filename);
   const jreDirPath = path.join(SONAR_CACHE_DIR, data.checksum, data.filename + '_unzip');
 
   await downloadFile(
     `${serverUrl}/api/v2/scanner/jre/download?filename=${data.filename}`,
     archivePath,
+    data.checksum,
   );
   await extractArchive(archivePath, jreDirPath);
 

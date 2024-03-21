@@ -1,5 +1,6 @@
 import AdmZip from 'adm-zip';
 import axios, { AxiosRequestConfig } from 'axios';
+import crypto from 'crypto';
 import fs from 'fs';
 import * as stream from 'stream';
 import { join, dirname } from 'path';
@@ -11,7 +12,27 @@ import { LogLevel, log } from './logging';
 
 const finished = promisify(stream.finished);
 
-export async function downloadFile(url: string, destPath: string, options?: AxiosRequestConfig) {
+/**
+ * TODO: Compute checksum without re-reading the file
+ */
+function generateChecksum(filepath: string) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(filepath, (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(crypto.createHash('md5').update(data).digest('hex'));
+    });
+  });
+}
+
+export async function downloadFile(
+  url: string,
+  destPath: string,
+  expectedChecksum?: string,
+  options?: AxiosRequestConfig,
+) {
   // Create destination directory if it doesn't exist
   const dir = destPath.substring(0, destPath.lastIndexOf('/'));
   if (!fs.existsSync(dir)) {
@@ -28,9 +49,17 @@ export async function downloadFile(url: string, destPath: string, options?: Axio
   });
   response.data.pipe(writer);
 
-  // TODO: Verify checksum. Do it here or in caller(?) to be decided
-
   await finished(writer);
+
+  if (expectedChecksum) {
+    log(LogLevel.INFO, `Verifying checksum ${expectedChecksum}`);
+    const checksum = await generateChecksum(destPath);
+    if (checksum !== expectedChecksum) {
+      throw new Error(
+        `Checksum verification failed for ${destPath}. Expected checksum ${expectedChecksum} but got ${checksum}`,
+      );
+    }
+  }
 }
 
 export async function extractArchive(archivePath: string, destPath: string) {
