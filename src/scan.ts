@@ -31,7 +31,7 @@ export type ScanOptions = {
   serverUrl: string;
   token: string;
   jvmOptions: string[];
-  options: { [key: string]: string };
+  options?: { [key: string]: string };
   caPath: string;
 };
 

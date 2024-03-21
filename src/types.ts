@@ -17,3 +17,5 @@ export type ScannerLogEntry = {
   formattedMessage: string;
   throwable?: string;
 };
+
+export type ScannerParams = { [key: string]: string };
