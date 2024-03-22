@@ -22,8 +22,9 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { defineSonarScannerParams } from './config';
 import { SONAR_CACHE_DIR } from './constants';
-import { downloadFile } from './download';
+import { downloadFile, getCachedFileLocation } from './download';
 import { LogLevel, log } from './logging';
 import { ScanOptions } from './scan';
 import { ScannerLogEntry } from './types';
@@ -39,6 +40,7 @@ export function writePropertyFile(properties: Record<string, string>) {
       })),
     ),
   );
+  log(LogLevel.DEBUG, 'Wrote properties file', filePath, properties);
   return filePath;
 }
 
@@ -48,9 +50,15 @@ export async function fetchScannerEngine(serverUrl: string): Promise<string> {
   log(LogLevel.DEBUG, `Scanner engine: ${filename} (md5: ${md5})`);
 
   // TODO: Cache
+  const cachedScannerEngine = getCachedFileLocation(md5, filename);
+  log(LogLevel.DEBUG, `Cached scanner engine: ${cachedScannerEngine}`);
+  if (cachedScannerEngine) {
+    log(LogLevel.INFO, `Using cached scanner engine: ${cachedScannerEngine}`);
+    return cachedScannerEngine;
+  }
 
   const scannerEnginePath = path.join(SONAR_CACHE_DIR, md5, filename);
-  await downloadFile(`${serverUrl}/batch/file?name=${filename}`, scannerEnginePath);
+  await downloadFile(`${serverUrl}/batch/file?name=${filename}`, scannerEnginePath, md5);
   return scannerEnginePath;
 }
 
@@ -72,8 +80,15 @@ export function runScannerEngine(
   scannerEnginePath: string,
   scanOptions: ScanOptions,
 ) {
-  // Run the scanner engine
-  const propertiesFile = writePropertyFile(scanOptions.options ?? {});
+  // Save the custom sonar.properties
+  const scannerParams = defineSonarScannerParams(
+    process.cwd(),
+    scanOptions,
+    process.env.SONARQUBE_SCANNER_PARAMS,
+  );
+  const propertiesFile = writePropertyFile(scannerParams);
+
+  // Run the scanner-engine
   const scannerOptions = [
     ...(scanOptions.jvmOptions ?? []),
     '-jar',
@@ -84,12 +99,9 @@ export function runScannerEngine(
   const scannerProcess = spawn(javaBinPath, scannerOptions, {
     env: {
       ...process.env,
-      // TODO: That means the token passed in JS overrides the env var. Do we want this?
       SONAR_TOKEN: scanOptions.token ?? process.env.SONAR_TOKEN,
     },
   });
-
-  // TODO: Fetch info from package.json
 
   return new Promise<void>((resolve, reject) => {
     scannerProcess.stdout.on('data', logScannerOutput);
