@@ -1,10 +1,8 @@
 import fs from 'fs';
 import { LogLevel, log } from './logging';
-import { PlatformInfo } from './types';
+import { PlatformInfo, SupportedOS } from './types';
 
 /**
- * TODO: Is there any license for this code?
- * TODO: Can we trust this code? Tested in docker and it seems OK
  * @see https://github.com/microsoft/vscode/blob/64874113ad3c59e8d045f75dc2ef9d33d13f3a03/src/vs/platform/extensionManagement/common/extensionManagementUtil.ts#L171C1-L190C1
  */
 function isAlpineLinux(): boolean {
@@ -27,11 +25,21 @@ function isAlpineLinux(): boolean {
   return !!content && (content.match(/^ID=([^\u001b\r\n]*)/m) || [])[1] === 'alpine';
 }
 
-export function getPlatformInfo(): PlatformInfo {
-  const os = isAlpineLinux() ? 'alpine' : process.platform;
+function getSupportedOS(): SupportedOS {
+  const mapping: { [nodePlatform: string]: SupportedOS } = {
+    linux: isAlpineLinux() ? 'alpine' : 'linux',
+    // TODO: Check whether these aliases are necessary
+    openbsd: 'linux',
+    sunos: 'linux',
+    freebsd: 'linux',
+    aix: 'aix',
+  };
+  return mapping[process.platform] ?? process.platform;
+}
 
+export function getPlatformInfo(): PlatformInfo {
   return {
-    os,
+    os: getSupportedOS(),
     arch: process.arch,
   };
 }

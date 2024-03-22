@@ -105,16 +105,6 @@ export async function extractArchive(archivePath: string, destPath: string) {
   }
 }
 
-export function allowExecution(filePath: string) {
-  log(LogLevel.INFO, `Allowing execution of ${filePath}`);
-  fs.chmodSync(filePath, 0o755);
-}
-
-export async function cleanupDownloadCache() {
-  log(LogLevel.INFO, 'Cleaning up cache');
-  // TODO: Implement
-}
-
 export function getCachedFileLocation(md5: string, filename: string): string | null {
   const filePath = path.join(SONAR_CACHE_DIR, md5, filename);
   if (fs.existsSync(path.join(SONAR_CACHE_DIR, md5, filename))) {
