@@ -2,13 +2,12 @@ import AdmZip from 'adm-zip';
 import axios, { AxiosRequestConfig } from 'axios';
 import crypto from 'crypto';
 import fs from 'fs';
-import path from 'path';
-import * as stream from 'stream';
-import { join, dirname } from 'path';
-import zlib from 'zlib';
-import tarStream from 'tar-stream';
 import * as fsExtra from 'fs-extra';
+import path, { dirname, join } from 'path';
+import * as stream from 'stream';
+import tarStream from 'tar-stream';
 import { promisify } from 'util';
+import zlib from 'zlib';
 import { SONAR_CACHE_DIR } from './constants';
 import { LogLevel, log } from './logging';
 
@@ -33,7 +32,7 @@ export async function downloadFile(
   url: string,
   destPath: string,
   expectedChecksum?: string,
-  options?: AxiosRequestConfig,
+  options?: Partial<AxiosRequestConfig>,
 ) {
   // Create destination directory if it doesn't exist
   const dir = destPath.substring(0, destPath.lastIndexOf('/'));

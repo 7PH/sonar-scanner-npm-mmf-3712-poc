@@ -25,6 +25,7 @@ import path from 'path';
 import { defineSonarScannerParams } from './config';
 import { SONAR_CACHE_DIR } from './constants';
 import { downloadFile, getCachedFileLocation } from './download';
+import { getHttpAgents } from './http-agent';
 import { LogLevel, log } from './logging';
 import { ScanOptions } from './scan';
 import { ScannerLogEntry } from './types';
@@ -44,12 +45,11 @@ export function writePropertyFile(properties: Record<string, string>) {
   return filePath;
 }
 
-export async function fetchScannerEngine(serverUrl: string): Promise<string> {
+export async function fetchScannerEngine(serverUrl: string, caPath?: string): Promise<string> {
   const { data } = await axios.get(`${serverUrl}/batch/index`);
   const [filename, md5] = data.trim().split('|');
   log(LogLevel.DEBUG, `Scanner engine: ${filename} (md5: ${md5})`);
 
-  // TODO: Cache
   const cachedScannerEngine = getCachedFileLocation(md5, filename);
   log(LogLevel.DEBUG, `Cached scanner engine: ${cachedScannerEngine}`);
   if (cachedScannerEngine) {
@@ -58,7 +58,12 @@ export async function fetchScannerEngine(serverUrl: string): Promise<string> {
   }
 
   const scannerEnginePath = path.join(SONAR_CACHE_DIR, md5, filename);
-  await downloadFile(`${serverUrl}/batch/file?name=${filename}`, scannerEnginePath, md5);
+  await downloadFile(
+    `${serverUrl}/batch/file?name=${filename}`,
+    scannerEnginePath,
+    md5,
+    getHttpAgents(serverUrl, caPath),
+  );
   return scannerEnginePath;
 }
 
