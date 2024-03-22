@@ -21,7 +21,7 @@ import axios from 'axios';
 import path from 'path';
 import semver, { SemVer } from 'semver';
 import {
-  SONARCLOUD_URL,
+  SONARCLOUD_ENV_REGEX,
   SONARQUBE_JRE_PROVISIONING_MIN_VERSION,
   SONAR_CACHE_DIR,
   UNARCHIVE_SUFFIX,
@@ -34,8 +34,7 @@ import { ScanOptions } from './scan';
 import { JreMetaData, PlatformInfo } from './types';
 
 function supportsJreProvisioning(serverUrl: string, serverVersion: SemVer) {
-  // TODO: Is this acceptable? This won't work on squad environments (ok we could use regexp match but still, is this acceptable?)
-  if (serverUrl === SONARCLOUD_URL) {
+  if (SONARCLOUD_ENV_REGEX.test(serverUrl)) {
     log(LogLevel.DEBUG, 'SonarCloud detected, and SonarCloud always supports JRE provisioning');
     return true;
   }

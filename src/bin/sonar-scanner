@@ -3,6 +3,6 @@ const scan = require('../../build/index').scan;
 
 const options = process.argv.length > 2 ? process.argv.slice(2) : [];
 
-scan({ isSQ: true }, options).catch(() => {
+scan({}, options).catch(() => {
   process.exitCode = 1;
 });
