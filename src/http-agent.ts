@@ -2,17 +2,18 @@ import { AxiosRequestConfig } from 'axios';
 import fs from 'fs';
 import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent';
 import https from 'https';
-import { getProxyForUrl } from 'proxy-from-env';
 
-export function getHttpAgents(targetUrl: string, caPath?: string) {
+export function getHttpAgents(
+  proxyUrl?: URL,
+  caPath?: string,
+): Pick<AxiosRequestConfig, 'httpAgent' | 'httpsAgent'> {
   const agents: Pick<AxiosRequestConfig, 'httpAgent' | 'httpsAgent'> = {};
 
   const ca = caPath ? fs.readFileSync(caPath) : undefined;
 
-  const proxy = getProxyForUrl(targetUrl);
-  if (proxy) {
-    agents.httpsAgent = new HttpsProxyAgent({ proxy, ca });
-    agents.httpAgent = new HttpProxyAgent({ proxy });
+  if (proxyUrl) {
+    agents.httpsAgent = new HttpsProxyAgent({ proxy: proxyUrl.toString(), ca });
+    agents.httpAgent = new HttpProxyAgent({ proxy: proxyUrl.toString() });
   } else if (caPath) {
     agents.httpsAgent = new https.Agent({ ca });
   }

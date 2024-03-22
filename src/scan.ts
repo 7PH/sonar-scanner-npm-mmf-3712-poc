@@ -52,11 +52,11 @@ export async function scan(scanOptions: ScanOptions) {
   log(LogLevel.INFO, 'Platform:', platformInfo);
 
   log(LogLevel.DEBUG, 'Fetch JRE path');
-  const javaBinPath = await fetchJre(serverUrl, serverVersion, platformInfo, scanOptions.caPath);
+  const javaBinPath = await fetchJre(serverVersion, platformInfo, scanOptions);
 
   // Download / cache scanner engine
   log(LogLevel.DEBUG, 'fetchScannerEnginePath');
-  const scannerEnginePath = await fetchScannerEngine(serverUrl, scanOptions.caPath);
+  const scannerEnginePath = await fetchScannerEngine(scanOptions);
 
   // Run scanner engine with downloaded java
   log(LogLevel.DEBUG, 'runScannerEngine');

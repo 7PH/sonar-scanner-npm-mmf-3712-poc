@@ -64,7 +64,7 @@ const invalidCharacterRegex = /[?$*+~.()'"!:@/]/g;
  */
 export function defineSonarScannerParams(
   projectBaseDir: string,
-  params: ScanOptions,
+  scanOptions: ScanOptions,
   sqScannerParamsFromEnvVariable?: string,
 ): ScannerParams {
   // #1 - set default values
@@ -72,7 +72,7 @@ export function defineSonarScannerParams(
     'sonar.scanner.app': SCANNER_BOOTSTRAPPER_NAME,
     'sonar.scanner.appVersion': version,
     'sonar.log.level': getLogLevel(),
-    'sonar.verbose': Boolean(params.verbose).toString(),
+    'sonar.verbose': Boolean(scanOptions.verbose).toString(),
   };
   try {
     const sqFile = path.join(projectBaseDir, 'sonar-project.properties');
@@ -113,14 +113,14 @@ export function defineSonarScannerParams(
   }
 
   // #3 - check what's passed in the call params - these are prevalent params
-  if (params.serverUrl) {
-    sonarScannerParams['sonar.host.url'] = params.serverUrl;
+  if (scanOptions.serverUrl) {
+    sonarScannerParams['sonar.host.url'] = scanOptions.serverUrl;
   }
-  if (params.token) {
-    sonarScannerParams['sonar.token'] = params.token;
+  if (scanOptions.token) {
+    sonarScannerParams['sonar.token'] = scanOptions.token;
   }
-  if (params.options) {
-    sonarScannerParams = Object.assign(sonarScannerParams, params.options);
+  if (scanOptions.options) {
+    sonarScannerParams = Object.assign(sonarScannerParams, scanOptions.options);
   }
 
   return sonarScannerParams;

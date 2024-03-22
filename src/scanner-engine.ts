@@ -27,6 +27,7 @@ import { SONAR_CACHE_DIR } from './constants';
 import { downloadFile, getCachedFileLocation } from './download';
 import { getHttpAgents } from './http-agent';
 import { LogLevel, log } from './logging';
+import { getProxyUrl, proxyUrlToJavaOptions } from './proxy';
 import { ScanOptions } from './scan';
 import { ScannerLogEntry } from './types';
 
@@ -45,7 +46,9 @@ export function writePropertyFile(properties: Record<string, string>) {
   return filePath;
 }
 
-export async function fetchScannerEngine(serverUrl: string, caPath?: string): Promise<string> {
+export async function fetchScannerEngine(scanOptions: ScanOptions): Promise<string> {
+  const { serverUrl } = scanOptions;
+
   const { data } = await axios.get(`${serverUrl}/batch/index`);
   const [filename, md5] = data.trim().split('|');
   log(LogLevel.DEBUG, `Scanner engine: ${filename} (md5: ${md5})`);
@@ -57,12 +60,17 @@ export async function fetchScannerEngine(serverUrl: string, caPath?: string): Pr
     return cachedScannerEngine;
   }
 
+  const proxyUrl = getProxyUrl(scanOptions);
+  if (proxyUrl) {
+    log(LogLevel.DEBUG, 'Proxy detected:', proxyUrl);
+  }
+
   const scannerEnginePath = path.join(SONAR_CACHE_DIR, md5, filename);
   await downloadFile(
     `${serverUrl}/batch/file?name=${filename}`,
     scannerEnginePath,
     md5,
-    getHttpAgents(serverUrl, caPath),
+    getHttpAgents(proxyUrl, scanOptions.caPath),
   );
   return scannerEnginePath;
 }
@@ -96,6 +104,7 @@ export function runScannerEngine(
   // Run the scanner-engine
   const scannerOptions = [
     ...(scanOptions.jvmOptions ?? []),
+    ...proxyUrlToJavaOptions(scanOptions, getProxyUrl(scanOptions)),
     '-jar',
     scannerEnginePath,
     propertiesFile,
