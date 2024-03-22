@@ -30,6 +30,7 @@ export enum LogLevel {
 let logLevel = DEFAULT_LOG_LEVEL;
 
 export function log(level: LogLevel, ...message: unknown[]) {
+  // TODO: Handle `logLevel` vs `level` check
   console.log(`[${level}]`, ...message);
 }
 

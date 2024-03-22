@@ -29,6 +29,8 @@ import {
 import { allowExecution, downloadFile, extractArchive, getCachedFileLocation } from './download';
 import { getHttpAgents } from './http-agent';
 import { LogLevel, log } from './logging';
+import { getProxyUrl } from './proxy';
+import { ScanOptions } from './scan';
 import { JreMetaData, PlatformInfo } from './types';
 
 function supportsJreProvisioning(serverUrl: string, serverVersion: SemVer) {
@@ -44,16 +46,15 @@ function supportsJreProvisioning(serverUrl: string, serverVersion: SemVer) {
 }
 
 async function downloadJre(
-  serverUrl: string,
   platformInfo: PlatformInfo,
-  caPath?: string,
+  scanOptions: ScanOptions,
 ): Promise<
   JreMetaData & {
     jrePath: string;
   }
 > {
   const { data } = await axios.get<JreMetaData>(
-    `${serverUrl}/api/v2/scanner/jre/info?os=${platformInfo.os}&arch=${platformInfo.arch}`,
+    `${scanOptions.serverUrl}/api/v2/scanner/jre/info?os=${platformInfo.os}&arch=${platformInfo.arch}`,
   );
 
   // If the JRE was already downloaded, we can skip the download
@@ -69,11 +70,16 @@ async function downloadJre(
   const archivePath = path.join(SONAR_CACHE_DIR, data.checksum, data.filename);
   const jreDirPath = path.join(SONAR_CACHE_DIR, data.checksum, data.filename + UNARCHIVE_SUFFIX);
 
+  const proxyUrl = getProxyUrl(scanOptions);
+  if (proxyUrl) {
+    log(LogLevel.DEBUG, 'Proxy detected:', proxyUrl);
+  }
+
   await downloadFile(
-    `${serverUrl}/api/v2/scanner/jre/download?filename=${data.filename}`,
+    `${scanOptions.serverUrl}/api/v2/scanner/jre/download?filename=${data.filename}`,
     archivePath,
     data.checksum,
-    getHttpAgents(serverUrl, caPath),
+    getHttpAgents(proxyUrl, scanOptions.caPath),
   );
   await extractArchive(archivePath, jreDirPath);
 
@@ -89,13 +95,12 @@ async function downloadJre(
 }
 
 export async function fetchJre(
-  serverUrl: string,
   serverVersion: SemVer,
   platformInfo: PlatformInfo,
-  caPath?: string,
+  scanOptions: ScanOptions,
 ): Promise<string> {
-  if (supportsJreProvisioning(serverUrl, serverVersion)) {
-    const { jrePath } = await downloadJre(serverUrl, platformInfo, caPath);
+  if (supportsJreProvisioning(scanOptions.serverUrl, serverVersion)) {
+    const { jrePath } = await downloadJre(platformInfo, scanOptions);
     return jrePath;
   }
 
