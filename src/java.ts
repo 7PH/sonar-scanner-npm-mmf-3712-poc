@@ -27,6 +27,7 @@ import {
   UNARCHIVE_SUFFIX,
 } from './constants';
 import { allowExecution, downloadFile, extractArchive, getCachedFileLocation } from './download';
+import { getHttpAgents } from './http-agent';
 import { LogLevel, log } from './logging';
 import { JreMetaData, PlatformInfo } from './types';
 
@@ -45,6 +46,7 @@ function supportsJreProvisioning(serverUrl: string, serverVersion: SemVer) {
 async function downloadJre(
   serverUrl: string,
   platformInfo: PlatformInfo,
+  caPath?: string,
 ): Promise<
   JreMetaData & {
     jrePath: string;
@@ -71,6 +73,7 @@ async function downloadJre(
     `${serverUrl}/api/v2/scanner/jre/download?filename=${data.filename}`,
     archivePath,
     data.checksum,
+    getHttpAgents(serverUrl, caPath),
   );
   await extractArchive(archivePath, jreDirPath);
 
@@ -89,9 +92,10 @@ export async function fetchJre(
   serverUrl: string,
   serverVersion: SemVer,
   platformInfo: PlatformInfo,
+  caPath?: string,
 ): Promise<string> {
   if (supportsJreProvisioning(serverUrl, serverVersion)) {
-    const { jrePath } = await downloadJre(serverUrl, platformInfo);
+    const { jrePath } = await downloadJre(serverUrl, platformInfo, caPath);
     return jrePath;
   }
 
