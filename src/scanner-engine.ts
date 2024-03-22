@@ -67,16 +67,16 @@ export async function fetchScannerEngine(serverUrl: string, caPath?: string): Pr
   return scannerEnginePath;
 }
 
-export async function logScannerOutput(logEntry: Buffer) {
+export async function logScannerOutput(logEntry: string) {
   try {
-    const parsed = JSON.parse(logEntry.toString()) as ScannerLogEntry;
+    const parsed = JSON.parse(logEntry) as ScannerLogEntry;
     log(parsed.level, 'ScannerEngine', parsed.formattedMessage);
     if (parsed.throwable) {
       // Console.log without newline
       process.stdout.write(parsed.throwable);
     }
   } catch (e) {
-    process.stdout.write(logEntry.toString());
+    process.stdout.write(logEntry);
   }
 }
 
@@ -101,15 +101,12 @@ export function runScannerEngine(
     propertiesFile,
   ];
   log(LogLevel.DEBUG, 'Running scanner engine', javaBinPath, ...scannerOptions);
-  const scannerProcess = spawn(javaBinPath, scannerOptions, {
-    env: {
-      ...process.env,
-      SONAR_TOKEN: scanOptions.token ?? process.env.SONAR_TOKEN,
-    },
-  });
+  const scannerProcess = spawn(javaBinPath, scannerOptions);
 
   return new Promise<void>((resolve, reject) => {
-    scannerProcess.stdout.on('data', logScannerOutput);
+    scannerProcess.stdout.on('data', data => {
+      data.toString().split('\n').forEach(logScannerOutput);
+    });
     scannerProcess.stderr.on('data', data => {
       log(LogLevel.ERROR, data.toString());
     });
