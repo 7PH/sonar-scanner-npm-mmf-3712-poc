@@ -1,4 +1,9 @@
 import path from 'path';
+import { LogLevel } from './logging';
+
+export const SCANNER_BOOTSTRAPPER_NAME = 'ScannerNpm';
+
+export const DEFAULT_LOG_LEVEL = LogLevel.INFO;
 
 export const SONARCLOUD_URL = 'https://sonarcloud.io';
 

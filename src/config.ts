@@ -20,7 +20,9 @@
 import fs from 'fs';
 import path from 'path';
 import slugify from 'slugify';
-import { LogLevel, log } from './logging';
+import { version } from '../package.json';
+import { SCANNER_BOOTSTRAPPER_NAME } from './constants';
+import { LogLevel, getLogLevel, log } from './logging';
 import { ScanOptions } from './scan';
 import { ScannerParams } from './types';
 
@@ -66,13 +68,19 @@ export function defineSonarScannerParams(
   sqScannerParamsFromEnvVariable?: string,
 ): ScannerParams {
   // #1 - set default values
-  let sonarScannerParams: ScannerParams = {};
+  let sonarScannerParams: ScannerParams = {
+    'sonar.scanner.app': SCANNER_BOOTSTRAPPER_NAME,
+    'sonar.scanner.appVersion': version,
+    'sonar.log.level': getLogLevel(),
+    'sonar.verbose': Boolean(params.verbose).toString(),
+  };
   try {
     const sqFile = path.join(projectBaseDir, 'sonar-project.properties');
     fs.accessSync(sqFile, fs.constants.F_OK);
     // there's a 'sonar-project.properties' file - no need to set default values
   } catch (e) {
     sonarScannerParams = {
+      ...sonarScannerParams,
       'sonar.projectDescription': 'No description.',
       'sonar.sources': '.',
       'sonar.exclusions':
@@ -80,11 +88,10 @@ export function defineSonarScannerParams(
     };
     // If there's a 'package.json' file, read it to grab info
     try {
-      sonarScannerParams = Object.assign(
-        {},
-        sonarScannerParams,
-        extractInfoFromPackageFile(projectBaseDir, sonarScannerParams['sonar.exclusions']),
-      );
+      sonarScannerParams = {
+        ...sonarScannerParams,
+        ...extractInfoFromPackageFile(projectBaseDir, sonarScannerParams['sonar.exclusions']),
+      };
     } catch (extractError: any) {
       // No 'package.json' file (or invalid one) - let's remain on the defaults
       log(

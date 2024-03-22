@@ -1,3 +1,5 @@
+import { DEFAULT_LOG_LEVEL } from './constants';
+
 /*
  * sonar-scanner-npm
  * Copyright (C) 2022-2023 SonarSource SA
@@ -25,6 +27,16 @@ export enum LogLevel {
   TRACE = 'TRACE',
 }
 
+let logLevel = DEFAULT_LOG_LEVEL;
+
 export function log(level: LogLevel, ...message: unknown[]) {
   console.log(`[${level}]`, ...message);
+}
+
+export function getLogLevel() {
+  return logLevel;
+}
+
+export function setLogLevel(level: LogLevel) {
+  logLevel = level;
 }
