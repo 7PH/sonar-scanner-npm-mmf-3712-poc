@@ -99,7 +99,9 @@ export function runScannerEngine(
     scanOptions,
     process.env.SONARQUBE_SCANNER_PARAMS,
   );
-  const propertiesFile = writePropertyFile(scannerParams);
+
+  // the scanner engine expects a JSON object of properties attached to a key name "scannerProperties"
+  const propertiesJSON = JSON.stringify({ scannerProperties: scannerParams });
 
   // Run the scanner-engine
   const scannerOptions = [
@@ -107,10 +109,15 @@ export function runScannerEngine(
     ...proxyUrlToJavaOptions(scanOptions, getProxyUrl(scanOptions)),
     '-jar',
     scannerEnginePath,
-    propertiesFile,
   ];
   log(LogLevel.DEBUG, 'Running scanner engine', javaBinPath, ...scannerOptions);
   const scannerProcess = spawn(javaBinPath, scannerOptions);
+
+  if (propertiesJSON) {
+    log(LogLevel.DEBUG, 'Writing properties to scanner engine', propertiesJSON);
+    scannerProcess.stdin.write(propertiesJSON);
+    scannerProcess.stdin.end();
+  }
 
   return new Promise<void>((resolve, reject) => {
     scannerProcess.stdout.on('data', data => {

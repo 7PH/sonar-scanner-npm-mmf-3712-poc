@@ -24,6 +24,14 @@ import { getPlatformInfo } from './platform';
 import { fetchScannerEngine, runScannerEngine } from './scanner-engine';
 import { fetchServerVersion } from './server';
 
+function parseOptions(options: string[]): { [key: string]: string } {
+  return options.reduce((parsedOptions, option) => {
+    const [key, value] = option.split('=');
+    const cleanedKey = key.replace('-D', '');
+    return { ...parsedOptions, [cleanedKey]: value };
+  }, {});
+}
+
 /**
  * Support for SQ < 9 dropped because login is not part of the properties
  */
@@ -37,10 +45,18 @@ export type ScanOptions = {
   verbose?: boolean;
 };
 
-export async function scan(scanOptions: ScanOptions) {
+export async function scan(scanOptions: ScanOptions, cliArgs?: string[]) {
+  // the only property from cli commands that would be used before scan execution
+  // TODO: check format is correct? (trailing slash causes issue)
+  const parsedOptions = cliArgs ? parseOptions(cliArgs) : {};
+  const hostUrl = parsedOptions?.['sonar.host.url'];
+
+  scanOptions.serverUrl = hostUrl ?? scanOptions.serverUrl;
+  scanOptions.options = { ...scanOptions.options, ...parsedOptions };
   const { serverUrl } = scanOptions;
 
   setLogLevel(scanOptions.logLevel ?? DEFAULT_LOG_LEVEL);
+  log(LogLevel.DEBUG, 'Scan options:', scanOptions);
 
   log(LogLevel.DEBUG, 'Fetch server version');
   const serverVersion = await fetchServerVersion(serverUrl);

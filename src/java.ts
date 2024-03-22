@@ -60,7 +60,7 @@ async function downloadJre(
   // If the JRE was already downloaded, we can skip the download
   const cachedJRE = getCachedFileLocation(data.md5, data.filename + UNARCHIVE_SUFFIX);
   if (cachedJRE) {
-    log(LogLevel.DEBUG, `JRE already downloaded to ${cachedJRE}. Skipping download`);
+    log(LogLevel.DEBUG, `JRE already downloaded to ${cachedJRE}. Skipping download.`);
     return {
       ...data,
       jrePath: path.join(cachedJRE, data.javaPath),
@@ -97,13 +97,19 @@ export async function fetchJre(
   platformInfo: PlatformInfo,
   scanOptions: ScanOptions,
 ): Promise<string> {
-  try {
-    if (supportsJreProvisioning(scanOptions.serverUrl, serverVersion)) {
-      const { jrePath } = await downloadJre(platformInfo, scanOptions);
-      return jrePath;
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (supportsJreProvisioning(scanOptions.serverUrl, serverVersion)) {
+        const { jrePath } = await downloadJre(platformInfo, scanOptions);
+        resolve(jrePath);
+      } else {
+        log(LogLevel.WARN, 'JRE Provisioning not supported. Using java from path.');
+        resolve('java');
+      }
+    } catch (error) {
+      log(LogLevel.ERROR, 'Failed to fetch JRE', error);
+      log(LogLevel.WARN, 'Using java from path.');
+      resolve('java');
     }
-  } catch (error) {
-    log(LogLevel.WARN, 'Failed to provision JRE. Using java from path.', error);
-  }
-  return 'java';
+  });
 }

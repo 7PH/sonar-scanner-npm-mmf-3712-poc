@@ -19,8 +19,16 @@
  */
 import axios from 'axios';
 import semver, { SemVer } from 'semver';
+import { LogLevel, log } from './logging';
 
 export async function fetchServerVersion(serverUrl: string): Promise<SemVer> {
-  const { data } = await axios.get(`${serverUrl}/api/server/version`);
-  return semver.coerce(data) ?? data; // TODO: Do we want to fail when we can't get the server version? That'd make sense
+  try {
+    log(LogLevel.DEBUG, 'Fetch URL: ', `${serverUrl}/api/server/version`);
+    const { data } = await axios.get(`${serverUrl}/api/server/version`);
+    log(LogLevel.DEBUG, 'Server version:', data);
+    return semver.coerce(data) ?? data; // TODO: Do we want to fail when we can't get the server version? That'd make sense
+  } catch (e) {
+    log(LogLevel.ERROR, 'Failed to fetch server version');
+    return Promise.reject(e);
+  }
 }
