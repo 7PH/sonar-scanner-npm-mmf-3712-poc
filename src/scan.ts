@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 import { DEFAULT_LOG_LEVEL } from './constants';
-import { cleanupDownloadCache } from './download';
 import { fetchJre } from './java';
 import { LogLevel, log, setLogLevel } from './logging';
 import { getPlatformInfo } from './platform';
@@ -61,11 +60,4 @@ export async function scan(scanOptions: ScanOptions) {
   // Run scanner engine with downloaded java
   log(LogLevel.DEBUG, 'runScannerEngine');
   await runScannerEngine(javaBinPath, scannerEnginePath, scanOptions);
-
-  // Cleanup cache
-  try {
-    await cleanupDownloadCache();
-  } catch (e) {
-    log(LogLevel.WARN, 'Failed to cleanup cache', e);
-  }
 }

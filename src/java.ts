@@ -26,7 +26,7 @@ import {
   SONAR_CACHE_DIR,
   UNARCHIVE_SUFFIX,
 } from './constants';
-import { allowExecution, downloadFile, extractArchive, getCachedFileLocation } from './download';
+import { downloadFile, extractArchive, getCachedFileLocation } from './download';
 import { getHttpAgents } from './http-agent';
 import { LogLevel, log } from './logging';
 import { getProxyUrl } from './proxy';
@@ -85,8 +85,6 @@ async function downloadJre(
 
   const jreBinPath = path.join(jreDirPath, data.javaPath);
   log(LogLevel.DEBUG, `JRE downloaded to ${jreDirPath}. Allowing execution on ${jreBinPath}`);
-  // TODO: check if this is needed, we can also check the file permissions before
-  allowExecution(jreBinPath);
 
   return {
     ...data,
@@ -99,13 +97,13 @@ export async function fetchJre(
   platformInfo: PlatformInfo,
   scanOptions: ScanOptions,
 ): Promise<string> {
-  if (supportsJreProvisioning(scanOptions.serverUrl, serverVersion)) {
-    const { jrePath } = await downloadJre(platformInfo, scanOptions);
-    return jrePath;
+  try {
+    if (supportsJreProvisioning(scanOptions.serverUrl, serverVersion)) {
+      const { jrePath } = await downloadJre(platformInfo, scanOptions);
+      return jrePath;
+    }
+  } catch (error) {
+    log(LogLevel.WARN, 'Failed to provision JRE. Using java from path.', error);
   }
-
-  // TODO: Sanity check?
-
-  // TODO: Check that this is acceptable
   return 'java';
 }

@@ -1,8 +1,9 @@
 import { LogLevel } from './logging';
 
+export type SupportedOS = 'windows' | 'linux' | 'alpine' | 'macos' | 'aix';
+
 export type PlatformInfo = {
-  // TODO: Use enum(?)
-  os: string;
+  os: SupportedOS | null;
   arch: string;
 };
 
