@@ -17,9 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+import { DEFAULT_LOG_LEVEL } from './constants';
 import { cleanupDownloadCache } from './download';
 import { fetchJre } from './java';
-import { LogLevel, log } from './logging';
+import { LogLevel, log, setLogLevel } from './logging';
 import { getPlatformInfo } from './platform';
 import { fetchScannerEngine, runScannerEngine } from './scanner-engine';
 import { fetchServerVersion } from './server';
@@ -33,10 +34,14 @@ export type ScanOptions = {
   jvmOptions: string[];
   options?: { [key: string]: string };
   caPath: string;
+  logLevel?: LogLevel;
+  verbose?: boolean;
 };
 
 export async function scan(scanOptions: ScanOptions) {
   const { serverUrl } = scanOptions;
+
+  setLogLevel(scanOptions.logLevel ?? DEFAULT_LOG_LEVEL);
 
   log(LogLevel.DEBUG, 'Fetch server version');
   const serverVersion = await fetchServerVersion(serverUrl);
