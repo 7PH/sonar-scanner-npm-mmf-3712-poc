@@ -1,5 +1,35 @@
 # NPM module to run SonarQube/SonarCloud analyses
 
+## POC Instructions
+
+To setup and test the POC, you can:
+
+1. Make sure you clone this repository and checkout the main branch
+2. Install dependencies with `npm ci`
+3. Build the project with `npm run build`
+4. Run an analysis in bash or javascript (do not forget to replace `SONAR_TOKEN=xxx` to include your analysis token in the following)
+
+   1. In bash
+
+   ```bash
+   SONAR_TOKEN=xxx ./src/bin/sonar-scanner -Dsonar.host.url=http://localhost:9000 -Dsonar.projectBaseDir=$(pwd)
+   ```
+
+   2. In javascript
+
+   ```javascript
+   // test.js
+   require('./build/src/index').scan({
+     serverUrl: 'http://localhost:9000',
+     options: {
+       'sonar.projectBaseDir': process.cwd(),
+     },
+   });
+   // SONAR_TOKEN=xxx node test.js
+   ```
+
+---
+
 `sonarqube-scanner` makes it very easy to trigger [SonarQube](https://www.sonarqube.org)
 / [SonarCloud](https://sonarcloud.io) analyses on a JavaScript code base, without needing
 to install any specific tool or (Java) runtime.
