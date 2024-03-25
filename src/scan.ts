@@ -45,6 +45,10 @@ export type ScanOptions = {
   verbose?: boolean;
 };
 
+const DEFAULT_OPTIONS = {
+  'sonar.projectBaseDir': process.cwd(),
+};
+
 export async function scan(scanOptions: ScanOptions, cliArgs?: string[]) {
   // the only property from cli commands that would be used before scan execution
   // TODO: check format is correct? (trailing slash causes issue)
@@ -52,7 +56,7 @@ export async function scan(scanOptions: ScanOptions, cliArgs?: string[]) {
   const hostUrl = parsedOptions?.['sonar.host.url'];
 
   scanOptions.serverUrl = hostUrl ?? scanOptions.serverUrl;
-  scanOptions.options = { ...scanOptions.options, ...parsedOptions };
+  scanOptions.options = { ...DEFAULT_OPTIONS, ...scanOptions.options, ...parsedOptions };
   const { serverUrl } = scanOptions;
 
   setLogLevel(scanOptions.logLevel ?? DEFAULT_LOG_LEVEL);
