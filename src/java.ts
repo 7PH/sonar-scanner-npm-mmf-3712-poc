@@ -54,11 +54,11 @@ async function downloadJre(
   }
 > {
   const { data } = await axios.get<JreMetaData>(
-    `${scanOptions.serverUrl}/api/v2/scanner/jre/info?os=${platformInfo.os}&arch=${platformInfo.arch}`,
+    `${scanOptions.serverUrl}/api/v2/analysis/jres?os=${platformInfo.os}&arch=${platformInfo.arch}`,
   );
 
   // If the JRE was already downloaded, we can skip the download
-  const cachedJRE = getCachedFileLocation(data.checksum, data.filename + UNARCHIVE_SUFFIX);
+  const cachedJRE = getCachedFileLocation(data.md5, data.filename + UNARCHIVE_SUFFIX);
   if (cachedJRE) {
     log(LogLevel.DEBUG, `JRE already downloaded to ${cachedJRE}. Skipping download`);
     return {
@@ -67,8 +67,8 @@ async function downloadJre(
     };
   }
 
-  const archivePath = path.join(SONAR_CACHE_DIR, data.checksum, data.filename);
-  const jreDirPath = path.join(SONAR_CACHE_DIR, data.checksum, data.filename + UNARCHIVE_SUFFIX);
+  const archivePath = path.join(SONAR_CACHE_DIR, data.md5, data.filename);
+  const jreDirPath = path.join(SONAR_CACHE_DIR, data.md5, data.filename + UNARCHIVE_SUFFIX);
 
   const proxyUrl = getProxyUrl(scanOptions);
   if (proxyUrl) {
@@ -76,9 +76,9 @@ async function downloadJre(
   }
 
   await downloadFile(
-    `${scanOptions.serverUrl}/api/v2/scanner/jre/download?filename=${data.filename}`,
+    `${scanOptions.serverUrl}/api/v2/analysis/jres/${data.filename}`,
     archivePath,
-    data.checksum,
+    data.md5,
     getHttpAgents(proxyUrl, scanOptions.caPath),
   );
   await extractArchive(archivePath, jreDirPath);
