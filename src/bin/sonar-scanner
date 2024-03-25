@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const scan = require('../../build/index').scan;
+const scan = require('../../build/src/index').scan;
 
 const options = process.argv.length > 2 ? process.argv.slice(2) : [];
 
