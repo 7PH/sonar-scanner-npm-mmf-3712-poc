@@ -3,3 +3,4 @@ node_modules
 tmp
 test*.js
 .sonar*
+.DS_Store
