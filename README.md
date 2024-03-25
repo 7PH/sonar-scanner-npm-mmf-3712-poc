@@ -12,7 +12,7 @@ To setup and test the POC, you can:
    1. In bash
 
    ```bash
-   SONAR_TOKEN=xxx ./src/bin/sonar-scanner -Dsonar.host.url=http://localhost:9000 -Dsonar.projectBaseDir=$(pwd)
+   SONAR_TOKEN=xxx ./src/bin/sonar-scanner -Dsonar.host.url=http://localhost:9000
    ```
 
    2. In javascript
@@ -21,9 +21,6 @@ To setup and test the POC, you can:
    // test.js
    require('./build/src/index').scan({
      serverUrl: 'http://localhost:9000',
-     options: {
-       'sonar.projectBaseDir': process.cwd(),
-     },
    });
    // SONAR_TOKEN=xxx node test.js
    ```
