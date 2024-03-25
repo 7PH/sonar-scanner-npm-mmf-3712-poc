@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 import { DEFAULT_LOG_LEVEL } from './constants';
-import { fetchJre } from './java';
+import { fetchJre, isJavaValid } from './java';
 import { LogLevel, log, setLogLevel } from './logging';
 import { getPlatformInfo } from './platform';
 import { fetchScannerEngine, runScannerEngine } from './scanner-engine';
@@ -72,6 +72,12 @@ export async function scan(scanOptions: ScanOptions, cliArgs?: string[]) {
 
   log(LogLevel.DEBUG, 'Fetch JRE path');
   const javaBinPath = await fetchJre(serverVersion, platformInfo, scanOptions);
+
+  log(LogLevel.DEBUG, 'Java sanity check');
+  if (!(await isJavaValid(javaBinPath))) {
+    log(LogLevel.ERROR, 'Unable to find java.');
+    throw new Error('Unable to find java.');
+  }
 
   // Download / cache scanner engine
   log(LogLevel.DEBUG, 'fetchScannerEnginePath');
