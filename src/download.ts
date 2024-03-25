@@ -54,7 +54,7 @@ export async function downloadFile(
 
   if (expectedChecksum) {
     log(LogLevel.INFO, `Verifying checksum ${expectedChecksum}`);
-    const checksum = 'c5704de3e0b6fb977db97b9b50d68dd65630e330375fd721ce9621dc407a4fb2'; // until real value returned await generateChecksum(destPath);
+    const checksum = await generateChecksum(destPath);
 
     log(LogLevel.DEBUG, `Checksum Value: ${checksum}`);
     if (checksum !== expectedChecksum) {
