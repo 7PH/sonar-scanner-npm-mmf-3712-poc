@@ -9,7 +9,7 @@ export type PlatformInfo = {
 
 export type JreMetaData = {
   filename: string;
-  checksum: string;
+  md5: string;
   javaPath: string;
 };
 
