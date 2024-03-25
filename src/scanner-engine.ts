@@ -19,8 +19,6 @@
  */
 import axios from 'axios';
 import { spawn } from 'child_process';
-import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import { defineSonarScannerParams } from './config';
 import { SONAR_CACHE_DIR } from './constants';
@@ -30,21 +28,6 @@ import { LogLevel, log } from './logging';
 import { getProxyUrl, proxyUrlToJavaOptions } from './proxy';
 import { ScanOptions } from './scan';
 import { ScannerLogEntry } from './types';
-
-export function writePropertyFile(properties: Record<string, string>) {
-  const filePath = path.join(os.tmpdir(), `sonar-scanner-npm-${Date.now()}.properties`); // TODO: What about conflict / race conditions? Should be fixed
-  fs.writeFileSync(
-    filePath,
-    JSON.stringify(
-      Object.entries(properties).map(([key, value]) => ({
-        key,
-        value,
-      })),
-    ),
-  );
-  log(LogLevel.DEBUG, 'Wrote properties file', filePath, properties);
-  return filePath;
-}
 
 export async function fetchScannerEngine(scanOptions: ScanOptions): Promise<string> {
   const { serverUrl } = scanOptions;
@@ -132,8 +115,6 @@ export function runScannerEngine(
         resolve();
       } else {
         log(LogLevel.ERROR, `Scanner engine failed with code ${code}`);
-        // TODO: We currently fail with the code but do we want to memorize the last throwable to also throw it there?
-        // So the user doesn't have to scroll up to see the error
         reject(new Error(`Scanner engine failed with code ${code}`));
       }
     });
