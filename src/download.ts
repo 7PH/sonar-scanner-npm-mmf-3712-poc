@@ -3,7 +3,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import crypto from 'crypto';
 import fs from 'fs';
 import * as fsExtra from 'fs-extra';
-import path, { dirname, join } from 'path';
+import path from 'path';
 import * as stream from 'stream';
 import tarStream from 'tar-stream';
 import { promisify } from 'util';
@@ -68,20 +68,19 @@ export async function downloadFile(
 export async function extractArchive(archivePath: string, destPath: string) {
   if (archivePath.endsWith('.tar.gz')) {
     const tarFilePath = archivePath;
-    const targetDirectory = destPath;
     const extract = tarStream.extract();
 
     const extractionPromise = new Promise((resolve, reject) => {
       extract.on('entry', async (header, stream, next) => {
-        const filePath = join(targetDirectory, header.name);
+        // Create the full path for the file
+        const filePath = path.join(destPath, header.name);
+
         // Ensure the directory exists
-        await fsExtra.ensureDir(dirname(filePath));
+        await fsExtra.ensureDir(path.dirname(filePath));
 
-        stream.pipe(fs.createWriteStream(filePath));
+        stream.pipe(fs.createWriteStream(filePath, { mode: header.mode }));
 
-        stream.on('end', function () {
-          next(); // ready for next entry
-        });
+        stream.on('end', next);
 
         stream.resume(); // just auto drain the stream
       });
