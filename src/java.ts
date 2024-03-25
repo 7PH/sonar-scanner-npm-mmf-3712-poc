@@ -20,6 +20,7 @@
 import axios from 'axios';
 import path from 'path';
 import semver, { SemVer } from 'semver';
+import util from 'util';
 import {
   SONARCLOUD_ENV_REGEX,
   SONARQUBE_JRE_PROVISIONING_MIN_VERSION,
@@ -32,6 +33,8 @@ import { LogLevel, log } from './logging';
 import { getProxyUrl } from './proxy';
 import { ScanOptions } from './scan';
 import { JreMetaData, PlatformInfo } from './types';
+
+const exec = util.promisify(require('node:child_process').exec);
 
 function supportsJreProvisioning(serverUrl: string, serverVersion: SemVer) {
   if (SONARCLOUD_ENV_REGEX.test(serverUrl)) {
@@ -91,24 +94,38 @@ async function downloadJre(
   };
 }
 
+export async function isJavaValid(jrePath: string): Promise<boolean> {
+  try {
+    const { stdout } = await exec(`${jrePath} -version`);
+    log(LogLevel.DEBUG, 'Java version:', stdout);
+    return true;
+  } catch (error) {
+    log(LogLevel.ERROR, 'Java version check failed', error);
+    return false;
+  }
+}
+
 export async function fetchJre(
   serverVersion: SemVer,
   platformInfo: PlatformInfo,
   scanOptions: ScanOptions,
 ): Promise<string> {
-  return new Promise(async (resolve, reject) => {
+  let jrePath: string = 'java';
+  if (supportsJreProvisioning(scanOptions.serverUrl, serverVersion)) {
     try {
-      if (supportsJreProvisioning(scanOptions.serverUrl, serverVersion)) {
-        const { jrePath } = await downloadJre(platformInfo, scanOptions);
-        resolve(jrePath);
-      } else {
-        log(LogLevel.WARN, 'JRE Provisioning not supported. Using java from path.');
-        resolve('java');
-      }
+      ({ jrePath } = await downloadJre(platformInfo, scanOptions));
     } catch (error) {
-      log(LogLevel.ERROR, 'Failed to fetch JRE', error);
-      log(LogLevel.WARN, 'Using java from path.');
-      resolve('java');
+      log(LogLevel.ERROR, 'Failed to fetch JRE', error, '. Using java from path.');
     }
-  });
+  } else {
+    log(LogLevel.WARN, 'JRE Provisioning not supported. Using java from path.');
+  }
+
+  log(LogLevel.DEBUG, 'JRE path:', jrePath);
+  if (!(await isJavaValid(jrePath))) {
+    log(LogLevel.ERROR, `Unable to execute JRE ${jrePath}`);
+    throw new Error(`Unable to execute JRE ${jrePath}`);
+  }
+
+  return jrePath;
 }
