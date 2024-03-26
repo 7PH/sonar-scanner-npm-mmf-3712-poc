@@ -20,18 +20,27 @@ import { DEFAULT_LOG_LEVEL } from './constants';
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 export enum LogLevel {
+  TRACE = 'TRACE',
   DEBUG = 'DEBUG',
   INFO = 'INFO',
   WARN = 'WARN',
   ERROR = 'ERROR',
-  TRACE = 'TRACE',
 }
+
+const logLevelValues = {
+  ERROR: 0,
+  WARN: 1,
+  INFO: 2,
+  DEBUG: 3,
+  TRACE: 4,
+};
 
 let logLevel = DEFAULT_LOG_LEVEL;
 
 export function log(level: LogLevel, ...message: unknown[]) {
-  // TODO: Handle `logLevel` vs `level` check
-  console.log(`[${level}]`, ...message);
+  if (logLevelValues[level] <= logLevelValues[logLevel]) {
+    console.log(`[${level}] ${message}`);
+  }
 }
 
 export function getLogLevel() {
