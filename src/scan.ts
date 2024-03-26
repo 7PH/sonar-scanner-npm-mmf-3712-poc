@@ -57,6 +57,8 @@ export async function scan(scanOptions: ScanOptions, cliArgs?: string[]) {
   const logLevel = parsedOptions?.['sonar.log.level'];
 
   scanOptions.serverUrl = hostUrl ?? scanOptions.serverUrl;
+  // TODO: consider dropping logLevel at the scanOptions level
+  // https://github.com/7PH/sonar-scanner-npm-mmf-3712-poc/pull/10#discussion_r1539210351
   scanOptions.logLevel = logLevel ?? scanOptions.logLevel;
   scanOptions.options = { ...DEFAULT_OPTIONS, ...scanOptions.options, ...parsedOptions };
   const { serverUrl } = scanOptions;

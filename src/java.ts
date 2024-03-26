@@ -47,20 +47,6 @@ function supportsJreProvisioning(serverUrl: string, serverVersion: SemVer) {
   return supports;
 }
 
-//typeguard temporary for POC
-function isJreMetaData(data: any): data is JreMetaData {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    typeof data.type === 'string' &&
-    typeof data.path === 'string' &&
-    typeof data.filename === 'string' &&
-    typeof data.extension === 'string' &&
-    typeof data.md5 === 'string' &&
-    typeof data.javaPath === 'string'
-  );
-}
-
 async function downloadJre(
   platformInfo: PlatformInfo,
   scanOptions: ScanOptions,
