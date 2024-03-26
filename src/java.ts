@@ -47,6 +47,20 @@ function supportsJreProvisioning(serverUrl: string, serverVersion: SemVer) {
   return supports;
 }
 
+//typeguard temporary for POC
+function isJreMetaData(data: any): data is JreMetaData {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    typeof data.type === 'string' &&
+    typeof data.path === 'string' &&
+    typeof data.filename === 'string' &&
+    typeof data.extension === 'string' &&
+    typeof data.md5 === 'string' &&
+    typeof data.javaPath === 'string'
+  );
+}
+
 async function downloadJre(
   platformInfo: PlatformInfo,
   scanOptions: ScanOptions,
@@ -55,9 +69,10 @@ async function downloadJre(
     jrePath: string;
   }
 > {
-  const { data } = await axios.get<JreMetaData>(
-    `${scanOptions.serverUrl}/api/v2/analysis/jres?os=${platformInfo.os}&arch=${platformInfo.arch}`,
-  );
+  const jreInfoUrl = `${scanOptions.serverUrl}/api/v2/analysis/jres?os=${platformInfo.os}&arch=${platformInfo.arch}`;
+  log(LogLevel.DEBUG, `Downloading JRE from: ${jreInfoUrl}`);
+
+  const { data } = await axios.get<JreMetaData>(jreInfoUrl);
 
   // If the JRE was already downloaded, we can skip the download
   const cachedJRE = getCachedFileLocation(data.md5, data.filename + UNARCHIVE_SUFFIX);
@@ -96,8 +111,12 @@ async function downloadJre(
 
 export async function isJavaValid(jrePath: string): Promise<boolean> {
   try {
-    const { stdout } = await exec(`${jrePath} -version`);
-    log(LogLevel.DEBUG, 'Java version:', stdout);
+    log(LogLevel.DEBUG, `Checking Java version of ${jrePath}`);
+    const { stdout, stderr } = await exec(`${jrePath} -version`);
+    const javaVersion = stdout || stderr;
+
+    log(LogLevel.DEBUG, 'Java version:', javaVersion);
+
     return true;
   } catch (error) {
     log(LogLevel.ERROR, 'Java version check failed', error);
