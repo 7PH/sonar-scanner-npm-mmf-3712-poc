@@ -37,10 +37,10 @@ function parseOptions(options: string[]): { [key: string]: string } {
  */
 export type ScanOptions = {
   serverUrl: string;
-  token: string;
-  jvmOptions: string[];
+  token?: string;
+  jvmOptions?: string[];
   options?: { [key: string]: string };
-  caPath: string;
+  caPath?: string;
   logLevel?: string;
   verbose?: boolean;
 };
