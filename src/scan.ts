@@ -41,7 +41,7 @@ export type ScanOptions = {
   jvmOptions: string[];
   options?: { [key: string]: string };
   caPath: string;
-  logLevel?: LogLevel;
+  logLevel?: string;
   verbose?: boolean;
 };
 
@@ -54,8 +54,10 @@ export async function scan(scanOptions: ScanOptions, cliArgs?: string[]) {
   // TODO: check format is correct? (trailing slash causes issue)
   const parsedOptions = cliArgs ? parseOptions(cliArgs) : {};
   const hostUrl = parsedOptions?.['sonar.host.url'];
+  const logLevel = parsedOptions?.['sonar.log.level'];
 
   scanOptions.serverUrl = hostUrl ?? scanOptions.serverUrl;
+  scanOptions.logLevel = logLevel ?? scanOptions.logLevel;
   scanOptions.options = { ...DEFAULT_OPTIONS, ...scanOptions.options, ...parsedOptions };
   const { serverUrl } = scanOptions;
 
@@ -65,11 +67,11 @@ export async function scan(scanOptions: ScanOptions, cliArgs?: string[]) {
 
   log(LogLevel.DEBUG, 'Fetch server version');
   const serverVersion = await fetchServerVersion(serverUrl);
-  log(LogLevel.INFO, 'Server version:', serverVersion.toString());
+  log(LogLevel.INFO, `Server version: ${serverVersion.toString()}`);
 
   log(LogLevel.DEBUG, 'Finding platform info');
   const platformInfo = getPlatformInfo();
-  log(LogLevel.INFO, 'Platform:', platformInfo);
+  log(LogLevel.INFO, `Platform: ${JSON.stringify(platformInfo)}`);
 
   log(LogLevel.DEBUG, 'Fetch JRE path');
   const javaBinPath = await fetchJre(serverVersion, platformInfo, scanOptions);

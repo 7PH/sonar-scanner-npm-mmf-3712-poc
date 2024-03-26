@@ -47,6 +47,24 @@ export function getLogLevel() {
   return logLevel;
 }
 
-export function setLogLevel(level: LogLevel) {
-  logLevel = level;
+function stringToLogLevel(level: string): LogLevel {
+  switch (level.toUpperCase()) {
+    case 'ERROR':
+      return LogLevel.ERROR;
+    case 'WARN':
+      return LogLevel.WARN;
+    case 'INFO':
+      return LogLevel.INFO;
+    case 'DEBUG':
+      return LogLevel.DEBUG;
+    case 'TRACE':
+      return LogLevel.TRACE;
+    default:
+      log(LogLevel.WARN, `Invalid log level: ${level}`);
+      return DEFAULT_LOG_LEVEL;
+  }
+}
+
+export function setLogLevel(level: string) {
+  logLevel = stringToLogLevel(level);
 }
