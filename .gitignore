@@ -1,7 +1,13 @@
 build
 node_modules
 tmp
-test*.js
-test*.sh
 .sonar*
 .DS_Store
+
+# Test files 
+/src/test
+test*.sh
+test*.js
+
+# VSCode custom debug configruations
+.vscode/launch-test-*.json
