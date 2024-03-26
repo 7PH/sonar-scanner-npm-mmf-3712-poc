@@ -39,7 +39,7 @@ const invalidCharacterRegex = /[?$*+~.()'"!:@/]/g;
  *  all
  * 3. sonar-project-properties
  *  as-is
- * OR (TODO: make it hierarchical, not conditionnal)
+ * OR (TODO: make it hierarchical, not conditional)
  * 3. package.json (only some other fields)
  *  slug(name)      -> sonar.projectKey
  *  name            -> sonar.projectName
@@ -49,7 +49,7 @@ const invalidCharacterRegex = /[?$*+~.()'"!:@/]/g;
  *  bugs.url        -> sonar.links.issue
  *  repository.url  -> sonar.links.scm
  *  pick up nyc/jest and append them to existing sonar.exclusions
- *  some logic aroung sonar.javascript.lcov.reportPaths
+ *  some logic around sonar.javascript.lcov.reportPaths
  *  same for sonar.testExecutionReportPaths
  *  same for sonar.testExecutionReportPaths
  * 4. default values (same)

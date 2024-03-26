@@ -60,6 +60,7 @@ export async function scan(scanOptions: ScanOptions, cliArgs?: string[]) {
   const { serverUrl } = scanOptions;
 
   setLogLevel(scanOptions.logLevel ?? DEFAULT_LOG_LEVEL);
+
   log(LogLevel.DEBUG, 'Scan options:', scanOptions);
 
   log(LogLevel.DEBUG, 'Fetch server version');
